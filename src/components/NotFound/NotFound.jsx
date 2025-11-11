@@ -7,10 +7,10 @@ const NotFound = () => (
     <Link
       to="/"
       className="rounded-full bg-blue-600 px-6 py-3 sm:px-8 sm:py-4 text-base sm:text-lg font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/40"
-    >
+      >
       Go Home
     </Link>
-  </div>
-);
+    </div>
+  );
 
 export default NotFound;
