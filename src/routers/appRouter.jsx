@@ -5,6 +5,8 @@ import ProtectedRoute from "./adminGuard";
 import AdminLayout from "../layouts/AdminLayout";
 import Placeholder from "../components/common/Placeholder";
 import LandingPage from "../pages/LandingPage/LandingPage";
+import LoginPage from "../pages/Auth/LoginPage";
+import SignupPage from "../pages/Auth/SignupPage";
 
 export const router = createBrowserRouter([
   {
@@ -12,7 +14,9 @@ export const router = createBrowserRouter([
     errorElement: <NotFound />,
     children: [
       { index: true, element: <LandingPage /> },
-      { path: "/login", element: <Placeholder title="Login" /> },
+      { path: "/login", element: <LoginPage /> },
+      { path: "/signup", element: <SignupPage /> },
+      { path: "/register", element: <SignupPage /> },
       { path: "/get-started", element: <Placeholder title="Get Started" /> },
       { path: "/watch-demo", element: <Placeholder title="Watch Demo" /> },
       { path: "/about", element: <Placeholder title="About" /> },

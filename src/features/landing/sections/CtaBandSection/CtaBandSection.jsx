@@ -61,7 +61,7 @@ const CtaBandSection = () => (
             whileTap={{ scale: 0.95 }}
           >
             <Link
-              to="/get-started"
+              to="/signup"
               className="inline-block rounded-full bg-blue-600 px-6 py-3 sm:px-7 sm:py-3.5 md:px-8 md:py-4 text-sm sm:text-base font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-300 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/40 focus:outline-none focus:visible:ring-2 focus:visible:ring-blue-400 focus:visible:ring-offset-2"
             >
               Get Started

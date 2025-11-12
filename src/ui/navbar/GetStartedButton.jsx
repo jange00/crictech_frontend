@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from "react-router-dom";
 
 const GetStartedButton = () => (
-  <Link to="/get-started">
+  <Link to="/signup">
     <motion.button
       whileHover={{ scale: 1.05, y: -2 }}
       whileTap={{ scale: 0.95 }}
@@ -22,8 +22,8 @@ const GetStartedButton = () => (
       <motion.span
         className="relative z-10 flex items-center gap-2"
         whileHover={{ x: 2 }}
-      >
-        Get Started
+  >
+    Get Started
         <motion.svg
           className="w-4 h-4"
           fill="none"

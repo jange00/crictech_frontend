@@ -17,8 +17,8 @@ const LoginLink = () => (
         whileHover={{ y: -2 }}
         whileTap={{ y: 0 }}
         className="relative inline-block"
-      >
-        Login
+  >
+    Login
         {!isActive && (
           <motion.span
             className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600"

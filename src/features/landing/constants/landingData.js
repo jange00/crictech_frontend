@@ -6,7 +6,7 @@ export const HERO_DATA = {
   subtitle: "Analyze, improve, and perfect your right-arm spin bowling action with AI-powered biomechanical insights tailored for amateur cricketers and coaches.",
   primaryAction: {
     label: "Get Started",
-    path: "/get-started",
+    path: "/signup",
   },
   secondaryAction: {
     label: "Watch Demo",
