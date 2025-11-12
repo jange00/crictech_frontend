@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const NavbarBrand = ({ label }) => (
-  <Link to="/" className="flex items-center group">
+  <Link to="/" className="flex items-center group -ml-2">
     <motion.div
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
@@ -14,7 +14,7 @@ const NavbarBrand = ({ label }) => (
         transition={{ duration: 0.5 }}
         className="relative inline-block"
       >
-        <span className="text-blue-600 text-xl font-bold md:text-2xl transition-all duration-300 group-hover:text-blue-700 relative z-10">
+        <span className="text-blue-600 text-2xl font-bold md:text-3xl transition-all duration-300 group-hover:text-blue-700 relative z-10">
           {label}
         </span>
         <motion.span

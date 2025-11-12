@@ -7,15 +7,13 @@ const MiniDemoSection = () => (
     <div className="grid items-center gap-8 sm:gap-10 md:gap-12 grid-cols-1 md:grid-cols-2">
       <motion.div
         initial={{ opacity: 0, x: -50, scale: 0.9 }}
-        whileInView={{ opacity: 1, x: 0, scale: 1 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, x: 0, scale: 1 }}
         transition={{ duration: 0.8, type: "spring", stiffness: 80 }}
         className="self-center"
       >
         <motion.div
           initial={{ opacity: 0, y: -10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-50 px-3 py-1 sm:px-4 sm:py-1.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-blue-700 mb-4 sm:mb-5 md:mb-6"
         >
@@ -28,8 +26,7 @@ const MiniDemoSection = () => (
         </motion.div>
         <motion.h3
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
           className="font-['Poppins'] text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight mb-3 sm:mb-4"
         >
@@ -37,8 +34,7 @@ const MiniDemoSection = () => (
         </motion.h3>
         <motion.p
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed text-slate-600"
         >
@@ -47,16 +43,14 @@ const MiniDemoSection = () => (
       </motion.div>
       <motion.div
         initial={{ opacity: 0, x: 50, scale: 0.8 }}
-        whileInView={{ opacity: 1, x: 0, scale: 1 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, x: 0, scale: 1 }}
         transition={{ duration: 0.8, type: "spring", stiffness: 80, delay: 0.2 }}
         whileHover={{ scale: 1.02 }}
       >
         <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 border-slate-200 bg-white shadow-2xl shadow-blue-500/10 ring-1 ring-slate-200/50">
           <motion.img
             initial={{ scale: 1.2 }}
-            whileInView={{ scale: 1 }}
-            viewport={{ once: true }}
+            animate={{ scale: 1 }}
             transition={{ duration: 1.2, ease: "easeOut" }}
             className="h-full w-full min-h-[240px] sm:min-h-[280px] md:min-h-[320px] lg:min-h-[360px] object-cover"
             src={DEMO_DATA.poster}
@@ -67,8 +61,7 @@ const MiniDemoSection = () => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 30, scale: 0.5, rotate: -10 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
-                viewport={{ once: true }}
+                animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
                 transition={{ 
                   duration: 0.5, 
                   delay: 0.5 + idx * 0.15,

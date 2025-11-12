@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const SectionLoader = ({ height = 140, delayMs = 400, children }) => {
+const SectionLoader = ({ height = 140, delayMs = 0, children }) => {
   const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {

@@ -7,7 +7,7 @@ const NavbarLinks = () => (
     initial={{ opacity: 0, x: 20 }}
     animate={{ opacity: 1, x: 0 }}
     transition={{ duration: 0.6, delay: 0.2 }}
-    className="flex items-center gap-4 sm:gap-6"
+    className="flex items-center gap-4 sm:gap-6 mr-2"
   >
     <LoginLink />
     <GetStartedButton />

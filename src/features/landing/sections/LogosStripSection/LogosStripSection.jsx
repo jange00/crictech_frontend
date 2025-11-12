@@ -6,15 +6,13 @@ const LogosStripSection = () => (
   <SectionContainer id="trusted" variant="default">
     <motion.div
       initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
       className="flex flex-col items-center justify-center"
     >
       <motion.p
         initial={{ opacity: 0, y: -20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
         className="text-center text-[10px] sm:text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 mb-6 sm:mb-8"
       >
@@ -25,8 +23,7 @@ const LogosStripSection = () => (
           <motion.div
             key={name}
             initial={{ opacity: 0, scale: 0.3, rotate: -180 }}
-            whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ 
               duration: 0.6, 
               delay: idx * 0.1,
