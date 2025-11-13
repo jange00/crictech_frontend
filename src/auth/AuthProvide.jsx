@@ -1,3 +1,5 @@
+import { createContext, useContext, useEffect, useState } from "react";
+
 export const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -34,7 +36,6 @@ const AuthContextProvider = ({ children }) => {
     setLoading(false);
   };
 
-  // Check authentication status on mount and when localStorage changes
   useEffect(() => {
     const checkAuth = () => {
       setLoading(true);
@@ -59,7 +60,6 @@ const AuthContextProvider = ({ children }) => {
 
     checkAuth();
 
-    // Listen for storage changes (when localStorage is updated from other tabs/windows)
     const handleStorageChange = (e) => {
       if (e.key === "token" || e.key === "user") {
         checkAuth();

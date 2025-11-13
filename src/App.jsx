@@ -39,7 +39,7 @@ import { RouterProvider } from 'react-router-dom';
 import {ToastContainer,Slide, Zoom, Bounce, Flip} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import { router } from './routers/appROuter';
+import { router } from './routers/appRouter';
 import ReactQueryProvider from './provider/reactQueryProvider';
 import AuthContextProvider from './auth/AuthProvide';
 
