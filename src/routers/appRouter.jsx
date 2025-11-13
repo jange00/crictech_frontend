@@ -7,6 +7,7 @@ import Placeholder from "../components/common/Placeholder";
 import LandingPage from "../pages/LandingPage/LandingPage";
 import LoginPage from "../pages/Auth/LoginPage";
 import SignupPage from "../pages/Auth/SignupPage";
+import DashboardPage from "../pages/Dashboard/DashboardPage";
 
 export const router = createBrowserRouter([
   {
@@ -17,7 +18,8 @@ export const router = createBrowserRouter([
       { path: "/login", element: <LoginPage /> },
       { path: "/signup", element: <SignupPage /> },
       { path: "/register", element: <SignupPage /> },
-      { path: "/get-started", element: <Placeholder title="Get Started" /> },
+      { path: "/get-started", element: <SignupPage /> },
+      { path: "/dashboard", element: <DashboardPage /> },
       { path: "/watch-demo", element: <Placeholder title="Watch Demo" /> },
       { path: "/about", element: <Placeholder title="About" /> },
       { path: "/contact", element: <Placeholder title="Contact" /> },

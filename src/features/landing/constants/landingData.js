@@ -87,7 +87,7 @@ export const DEMO_DATA = {
 };
 
 export const FOOTER_DATA = {
-  brand: "CricketAI",
+  brand: "CricTech",
   description: "Empowering amateur cricketers and coaches with AI-driven biomechanics to master right-arm spin bowling.",
   links: [
     { label: "About", to: "/about" },
