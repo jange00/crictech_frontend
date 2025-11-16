@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import DashboardTopNav from "../../../ui/dashboard/DashboardTopNav";
 import DashboardSidebar from "../../../ui/dashboard/DashboardSidebar";
 import DashboardSummaryCard from "../../../ui/dashboard/DashboardSummaryCard";
@@ -6,6 +6,8 @@ import PerformanceLineChart from "../../../ui/dashboard/PerformanceLineChart";
 import BenchmarkBarChart from "../../../ui/dashboard/BenchmarkBarChart";
 import FeedbackCard from "../../../ui/dashboard/FeedbackCard";
 import PlaceholderPanel from "../../../ui/dashboard/PlaceholderPanel";
+import UploadWorkflow from "./UploadWorkflow";
+import AnalysisOverview from "./AnalysisOverview";
 import {
   DASHBOARD_METRICS,
   PROGRESS_LINE_DATA,
@@ -19,7 +21,7 @@ const DashboardContent = () => {
   const [activeMenu, setActiveMenu] = useState("Overview");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
-  const fileInputRef = useRef(null);
+  const [analysisResults, setAnalysisResults] = useState([]);
 
   const lastUpdated = useMemo(
     () =>
@@ -36,15 +38,13 @@ const DashboardContent = () => {
     ? "border-slate-800 bg-slate-950 text-slate-100 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.9)]"
     : "border-slate-200 bg-white text-slate-900 shadow-[0_40px_100px_-45px_rgba(15,23,42,0.15)]";
 
-  const handleUploadClick = useCallback(() => {
-    fileInputRef.current?.click();
+  const handleUploadComplete = useCallback((fileName) => {
+    setUploadedFile(fileName);
   }, []);
 
-  const handleFileChange = useCallback((event) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setUploadedFile(file.name);
-    }
+  const handleAnalysisComplete = useCallback((results) => {
+    setAnalysisResults(results || []);
+    setActiveMenu("Analysis");
   }, []);
 
   const overviewContent = (
@@ -59,18 +59,11 @@ const DashboardContent = () => {
         </div>
         <button
           type="button"
-          onClick={handleUploadClick}
+          onClick={() => setActiveMenu(MENU_UPLOAD)}
           className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/30 transition hover:bg-blue-700"
         >
           Upload Session
         </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="video/*"
-          className="hidden"
-          onChange={handleFileChange}
-        />
       </div>
 
       <section className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
@@ -98,33 +91,19 @@ const DashboardContent = () => {
         return overviewContent;
       case MENU_UPLOAD:
         return (
-          <PlaceholderPanel
-            title="Upload Your Bowling Session"
-            description={
-              uploadedFile
-                ? `You have uploaded "${uploadedFile}". Upload a new session to overwrite or proceed to analysis.`
-                : "Drag and drop high frame-rate footage or upload directly to analyze your right-arm spin technique."
-            }
-            actions={[
-              {
-                label: uploadedFile ? "Upload Another Video" : "Choose Video",
-                onClick: handleUploadClick,
-              },
-              { label: "View Upload Guidelines", onClick: () => setActiveMenu("Analysis"), variant: "secondary" },
-            ]}
+          <UploadWorkflow
             isDarkMode={isDarkMode}
+            onUploadComplete={handleUploadComplete}
+            onAnalysisComplete={handleAnalysisComplete}
           />
         );
       case "Analysis":
         return (
-          <PlaceholderPanel
-            title="Biomechanics Analysis"
-            description="Generate release angle, spin rate, and stride alignment overlays once a video is uploaded."
-            actions={[
-              { label: "Run Latest Analysis", onClick: () => setActiveMenu("Feedback") },
-              { label: "View Sample Report", onClick: () => window.open("#", "_blank") },
-            ]}
+          <AnalysisOverview
+            results={analysisResults}
             isDarkMode={isDarkMode}
+            lastUploadedFile={uploadedFile}
+            onUploadAnother={() => setActiveMenu(MENU_UPLOAD)}
           />
         );
       case "Feedback":
@@ -133,7 +112,7 @@ const DashboardContent = () => {
             title="AI Feedback"
             description="Receive session-specific drills, cues, and actionable next steps tailored to your deviations."
             actions={[
-              { label: "See Recent Feedback", onClick: () => setActiveMenu("Progress Tracker") },
+              { label: "See Recent Feedback", onClick: () => setActiveMenu(MENU_UPLOAD) },
             ]}
             isDarkMode={isDarkMode}
           />
