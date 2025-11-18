@@ -103,4 +103,3 @@ const AnalysisOverview = ({ results = [], isDarkMode, lastUploadedFile, onUpload
 };
 
 export default AnalysisOverview;
-
