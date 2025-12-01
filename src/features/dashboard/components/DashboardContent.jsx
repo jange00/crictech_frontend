@@ -10,6 +10,7 @@ import UploadWorkflow from "./UploadWorkflow";
 import AnalysisOverview from "./AnalysisOverview";
 import AIFeedbackPage from "./AIFeedbackPage";
 import ProgressTrackerPage from "./ProgressTrackerPage";
+import SettingsPage from "./SettingsPage";
 import {
   DASHBOARD_METRICS,
   PROGRESS_LINE_DATA,
@@ -140,16 +141,7 @@ const DashboardContent = () => {
       case "Progress Tracker":
         return <ProgressTrackerPage isDarkMode={isDarkMode} />;
       case "Settings":
-        return (
-          <PlaceholderPanel
-            title="Settings"
-            description="Update notification preferences, export data, and manage academy invitations from here."
-            actions={[
-              { label: "Open Preferences", onClick: () => window.open("#", "_blank") },
-            ]}
-            isDarkMode={isDarkMode}
-          />
-        );
+        return <SettingsPage isDarkMode={isDarkMode} />;
       default:
         return overviewContent;
     }
