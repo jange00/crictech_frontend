@@ -1,6 +1,6 @@
-import { CheckCircleIcon, ExclamationTriangleIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, ExclamationTriangleIcon, ArrowPathIcon, EyeIcon } from "@heroicons/react/24/outline";
 
-const AnalysisOverview = ({ results = [], isDarkMode, lastUploadedFile, onUploadAnother }) => {
+const AnalysisOverview = ({ results = [], isDarkMode, lastUploadedFile, onUploadAnother, onViewFeedback }) => {
   const positives = results.filter((item) => item.status === "positive");
   const improvements = results.filter((item) => item.status !== "positive");
 
@@ -25,14 +25,26 @@ const AnalysisOverview = ({ results = [], isDarkMode, lastUploadedFile, onUpload
               )}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onUploadAnother}
-            className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/30 transition hover:bg-blue-700"
-          >
-            <ArrowPathIcon className="h-5 w-5" />
-            Analyze Another Session
-          </button>
+          <div className="flex flex-wrap gap-3">
+            {results.length > 0 && onViewFeedback && (
+              <button
+                type="button"
+                onClick={onViewFeedback}
+                className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-emerald-600/30 transition hover:bg-emerald-700"
+              >
+                <EyeIcon className="h-5 w-5" />
+                View Detailed Feedback
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onUploadAnother}
+              className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/30 transition hover:bg-blue-700"
+            >
+              <ArrowPathIcon className="h-5 w-5" />
+              Analyze Another Session
+            </button>
+          </div>
         </div>
       </header>
 

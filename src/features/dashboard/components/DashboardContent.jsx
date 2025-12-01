@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import DashboardTopNav from "../../../ui/dashboard/DashboardTopNav";
 import DashboardSidebar from "../../../ui/dashboard/DashboardSidebar";
 import DashboardSummaryCard from "../../../ui/dashboard/DashboardSummaryCard";
@@ -48,6 +48,17 @@ const DashboardContent = () => {
   const handleAnalysisComplete = useCallback((results) => {
     setAnalysisResults(results || []);
     setActiveMenu("Analysis");
+  }, []);
+
+  useEffect(() => {
+    const handleNavigateToSettings = () => {
+      setActiveMenu("Settings");
+    };
+
+    window.addEventListener("navigateToSettings", handleNavigateToSettings);
+    return () => {
+      window.removeEventListener("navigateToSettings", handleNavigateToSettings);
+    };
   }, []);
 
   const overviewContent = (
@@ -107,6 +118,7 @@ const DashboardContent = () => {
             isDarkMode={isDarkMode}
             lastUploadedFile={uploadedFile}
             onUploadAnother={() => setActiveMenu(MENU_UPLOAD)}
+            onViewFeedback={() => setActiveMenu("Feedback")}
           />
         );
       case "Feedback":

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { toast } from "react-toastify";
 import { generatePoseOverlayData } from "./utils/poseUtils";
 import { DEFAULT_FEEDBACK_DATA } from "./constants/feedbackConstants";
 import ComparisonViewer from "./components/ComparisonViewer";
@@ -134,6 +135,69 @@ const FeedbackPage = ({ isDarkMode, feedbackData = null }) => {
         </button>
         <button
           type="button"
+          onClick={() => {
+            try {
+              const reportData = {
+                feedbackAnalysis: {
+                  date: new Date().toISOString(),
+                  jointAngles: data.jointAngles,
+                  feedbackItems: data.feedbackItems,
+                },
+                summary: {
+                  totalFeedbackItems: data.feedbackItems.length,
+                  positiveItems: data.feedbackItems.filter((item) => item.type === "positive").length,
+                  improvementItems: data.feedbackItems.filter((item) => item.type === "warning").length,
+                },
+              };
+
+              const reportContent = `
+CricTech AI Feedback Report
+Generated: ${new Date().toLocaleString()}
+
+=== JOINT ANGLE ANALYSIS ===
+${data.jointAngles
+  .map(
+    (joint) => `
+${joint.joint}:
+  Your Angle: ${joint.userAngle}°
+  Expert Angle: ${joint.expertAngle}°
+  Status: ${joint.status === "warning" ? "Needs Improvement" : "Optimal"}
+`
+  )
+  .join("")}
+
+=== AI-GENERATED FEEDBACK ===
+${data.feedbackItems
+  .map(
+    (item, idx) => `
+${idx + 1}. ${item.title}
+   ${item.message}
+   💡 Suggestion: ${item.suggestion || "N/A"}
+`
+  )
+  .join("")}
+
+=== SUMMARY ===
+Total Feedback Items: ${reportData.summary.totalFeedbackItems}
+Positive Aspects: ${reportData.summary.positiveItems}
+Areas for Improvement: ${reportData.summary.improvementItems}
+              `.trim();
+
+              const blob = new Blob([reportContent], { type: "text/plain" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `crictech-feedback-report-${new Date().toISOString().split("T")[0]}.txt`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+              toast.success("Feedback report downloaded successfully");
+            } catch (error) {
+              console.error("Error generating report:", error);
+              toast.error("Failed to generate report. Please try again.");
+            }
+          }}
           className={`inline-flex items-center gap-2 rounded-2xl border px-5 py-3 text-sm font-semibold transition ${
             isDarkMode
               ? "border-slate-700 bg-slate-900 text-slate-200 hover:border-blue-400"
