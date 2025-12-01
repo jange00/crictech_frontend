@@ -9,6 +9,7 @@ import PlaceholderPanel from "../../../ui/dashboard/PlaceholderPanel";
 import UploadWorkflow from "./UploadWorkflow";
 import AnalysisOverview from "./AnalysisOverview";
 import AIFeedbackPage from "./AIFeedbackPage";
+import ProgressTrackerPage from "./ProgressTrackerPage";
 import {
   DASHBOARD_METRICS,
   PROGRESS_LINE_DATA,
@@ -137,16 +138,7 @@ const DashboardContent = () => {
           />
         );
       case "Progress Tracker":
-        return (
-          <PlaceholderPanel
-            title="Progress Tracker"
-            description="Compare week-on-week stats, benchmark against experts, and monitor consistency across the season."
-            actions={[
-              { label: "Download CSV", onClick: () => window.open("#", "_blank"), variant: "secondary" },
-            ]}
-            isDarkMode={isDarkMode}
-          />
-        );
+        return <ProgressTrackerPage isDarkMode={isDarkMode} />;
       case "Settings":
         return (
           <PlaceholderPanel
