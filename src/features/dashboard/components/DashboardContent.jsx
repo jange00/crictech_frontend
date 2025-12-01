@@ -8,6 +8,7 @@ import FeedbackCard from "../../../ui/dashboard/FeedbackCard";
 import PlaceholderPanel from "../../../ui/dashboard/PlaceholderPanel";
 import UploadWorkflow from "./UploadWorkflow";
 import AnalysisOverview from "./AnalysisOverview";
+import AIFeedbackPage from "./AIFeedbackPage";
 import {
   DASHBOARD_METRICS,
   PROGRESS_LINE_DATA,
@@ -108,13 +109,31 @@ const DashboardContent = () => {
         );
       case "Feedback":
         return (
-          <PlaceholderPanel
-            title="AI Feedback"
-            description="Receive session-specific drills, cues, and actionable next steps tailored to your deviations."
-            actions={[
-              { label: "See Recent Feedback", onClick: () => setActiveMenu(MENU_UPLOAD) },
-            ]}
+          <AIFeedbackPage
             isDarkMode={isDarkMode}
+            feedbackData={
+              analysisResults.length > 0
+                ? {
+                    userVideoUrl: "",
+                    expertVideoUrl: "",
+                    jointAngles: [
+                      { joint: "Elbow", userAngle: 82, expertAngle: 95, status: "warning" },
+                      { joint: "Shoulder", userAngle: 145, expertAngle: 150, status: "warning" },
+                      { joint: "Wrist", userAngle: 12, expertAngle: 8, status: "warning" },
+                    ],
+                    feedbackItems: analysisResults.map((result, idx) => ({
+                      id: `feedback-${idx}`,
+                      type: result.status === "positive" ? "positive" : "warning",
+                      title: result.label,
+                      message: result.description,
+                      suggestion:
+                        result.status === "positive"
+                          ? "Maintain this technique for consistent performance."
+                          : "Focus on improving this aspect in your next session.",
+                    })),
+                  }
+                : null
+            }
           />
         );
       case "Progress Tracker":
