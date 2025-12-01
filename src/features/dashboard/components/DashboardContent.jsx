@@ -8,9 +8,9 @@ import FeedbackCard from "../../../ui/dashboard/FeedbackCard";
 import PlaceholderPanel from "../../../ui/dashboard/PlaceholderPanel";
 import UploadWorkflow from "./UploadWorkflow";
 import AnalysisOverview from "./AnalysisOverview";
-import AIFeedbackPage from "./AIFeedbackPage";
-import ProgressTrackerPage from "./ProgressTrackerPage";
-import SettingsPage from "./SettingsPage";
+import FeedbackPage from "../feedback/FeedbackPage";
+import ProgressTrackerPage from "../progress/ProgressTrackerPage";
+import SettingsPage from "../settings/SettingsPage";
 import {
   DASHBOARD_METRICS,
   PROGRESS_LINE_DATA,
@@ -111,7 +111,7 @@ const DashboardContent = () => {
         );
       case "Feedback":
         return (
-          <AIFeedbackPage
+          <FeedbackPage
             isDarkMode={isDarkMode}
             feedbackData={
               analysisResults.length > 0
