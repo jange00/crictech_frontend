@@ -63,3 +63,4 @@ const SettingsPage = ({ isDarkMode }) => {
 
 export default SettingsPage;
 
+

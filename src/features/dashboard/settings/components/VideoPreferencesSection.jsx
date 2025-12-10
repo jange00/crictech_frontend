@@ -108,3 +108,4 @@ const VideoPreferencesSection = ({ isDarkMode }) => {
 
 export default VideoPreferencesSection;
 
+

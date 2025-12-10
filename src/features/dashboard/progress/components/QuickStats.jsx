@@ -55,3 +55,4 @@ const QuickStats = ({ sessionHistory, aiInsights, isDarkMode }) => {
 
 export default QuickStats;
 
+
