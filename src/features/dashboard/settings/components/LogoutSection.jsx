@@ -31,3 +31,4 @@ const LogoutSection = ({ onLogout, isDarkMode }) => {
 
 export default LogoutSection;
 
+

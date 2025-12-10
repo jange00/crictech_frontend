@@ -41,3 +41,4 @@ const AIInsightsCard = ({ aiInsights, isDarkMode }) => {
 
 export default AIInsightsCard;
 
+
