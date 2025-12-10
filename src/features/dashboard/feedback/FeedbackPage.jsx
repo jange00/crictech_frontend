@@ -1,20 +1,60 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-toastify";
 import { generatePoseOverlayData } from "./utils/poseUtils";
 import { DEFAULT_FEEDBACK_DATA } from "./constants/feedbackConstants";
 import ComparisonViewer from "./components/ComparisonViewer";
 import FeedbackCards from "./components/FeedbackCards";
+import { useAnalysis } from "../../../hooks/useAnalysis";
 
-const FeedbackPage = ({ isDarkMode, feedbackData = null }) => {
+const FeedbackPage = ({ isDarkMode, analysisId = null }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const userVideoRef = useRef(null);
   const expertVideoRef = useRef(null);
 
-  const data = feedbackData || DEFAULT_FEEDBACK_DATA;
+  // Fetch analysis feedback from API
+  const { useFeedback, useSingleAnalysis } = useAnalysis();
+  const { data: feedbackData, isLoading: feedbackLoading } = useFeedback(analysisId);
+  const { data: analysisData, isLoading: analysisLoading } = useSingleAnalysis(analysisId);
 
-  const poseOverlayData = generatePoseOverlayData(data.jointAngles, false);
-  const expertPoseOverlayData = generatePoseOverlayData(data.jointAngles, true);
+  // Transform API data to component format
+  // Backend /api/analysis/:id/feedback returns: { success: true, feedback: { items, jointAngles, metrics, expertComparison } }
+  // Backend /api/analysis/:id returns: { success: true, analysis: Analysis }
+  const data = useMemo(() => {
+    if (!feedbackData && !analysisData) {
+      return DEFAULT_FEEDBACK_DATA;
+    }
+
+    // feedbackData structure: { items, jointAngles, metrics, expertComparison }
+    // analysisData structure: Analysis object with sessionId populated
+    if (feedbackData) {
+      return {
+        userVideoUrl: analysisData?.sessionId?.videoUrl || "",
+        expertVideoUrl: feedbackData.expertComparison?.expertVideoUrl || "",
+        jointAngles: feedbackData.jointAngles || [],
+        feedbackItems: feedbackData.items || [],
+        metrics: feedbackData.metrics || {},
+        expertComparison: feedbackData.expertComparison || {},
+      };
+    }
+    
+    // Fallback to analysis data
+    if (analysisData) {
+      return {
+        userVideoUrl: analysisData.sessionId?.videoUrl || "",
+        expertVideoUrl: analysisData.expertComparison?.expertVideoUrl || "",
+        jointAngles: analysisData.jointAngles || [],
+        feedbackItems: analysisData.feedbackItems || [],
+        metrics: analysisData.metrics || {},
+        expertComparison: analysisData.expertComparison || {},
+      };
+    }
+    
+    return DEFAULT_FEEDBACK_DATA;
+  }, [feedbackData, analysisData]);
+
+  const poseOverlayData = useMemo(() => generatePoseOverlayData(data.jointAngles, false), [data.jointAngles]);
+  const expertPoseOverlayData = useMemo(() => generatePoseOverlayData(data.jointAngles, true), [data.jointAngles]);
 
   const handlePlayPause = () => {
     if (userVideoRef.current && expertVideoRef.current) {
@@ -83,6 +123,28 @@ const FeedbackPage = ({ isDarkMode, feedbackData = null }) => {
   const cardStyles = isDarkMode
     ? "border-slate-800 bg-slate-900/70 text-slate-100 shadow-[0_12px_30px_-25px_rgba(15,23,42,0.9)]"
     : "border-slate-200 bg-white text-slate-900 shadow-[0_15px_35px_-25px_rgba(15,23,42,0.25)]";
+
+  if (!analysisId) {
+    return (
+      <div className={`rounded-3xl border p-6 ${cardStyles}`}>
+        <h2 className="text-2xl font-semibold mb-2">AI Feedback Analysis</h2>
+        <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+          No analysis selected. Please complete an analysis first to view feedback.
+        </p>
+      </div>
+    );
+  }
+
+  if (feedbackLoading || analysisLoading) {
+    return (
+      <div className={`rounded-3xl border p-6 ${cardStyles}`}>
+        <div className="flex items-center gap-3">
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-t-transparent border-blue-600" />
+          <span>Loading feedback data...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">

@@ -1,24 +1,33 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../../auth/AuthProvide";
+import { useAuth } from "../../../auth/useAuth";
 import { toast } from "react-toastify";
 import ProfileSection from "./components/ProfileSection";
 import VideoPreferencesSection from "./components/VideoPreferencesSection";
 import PrivacySection from "./components/PrivacySection";
 import LogoutSection from "./components/LogoutSection";
+import ConfirmationDialog from "../../../ui/common/ConfirmationDialog";
 
 const SettingsPage = ({ isDarkMode }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const cardStyles = isDarkMode
     ? "border-slate-800 bg-slate-900/70 text-slate-100 shadow-[0_12px_30px_-25px_rgba(15,23,42,0.9)]"
     : "border-slate-200 bg-white text-slate-900 shadow-[0_15px_35px_-25px_rgba(15,23,42,0.25)]";
 
-  const handleLogout = () => {
-    if (window.confirm("Are you sure you want to logout?")) {
-      logout();
-      toast.success("Logged out successfully");
+  const handleLogout = async () => {
+    setShowLogoutDialog(true);
+  };
+
+  const confirmLogout = async () => {
+    try {
+      await logout();
       navigate("/login");
+      toast.success("Logged out successfully");
+    } catch (error) {
+      toast.error("Failed to logout. Please try again.");
     }
   };
 
@@ -46,7 +55,7 @@ const SettingsPage = ({ isDarkMode }) => {
       <PrivacySection
         profileData={{
           name: user?.name || user?.username || "Rohit",
-          preferredHand: localStorage.getItem("preferredHand") || "right",
+          preferredHand: "right", // Only right hand is supported
         }}
         videoPreferences={{
           resolution: localStorage.getItem("videoResolution") || "1080p",
@@ -57,6 +66,19 @@ const SettingsPage = ({ isDarkMode }) => {
 
       {/* Logout Section */}
       <LogoutSection onLogout={handleLogout} isDarkMode={isDarkMode} />
+
+      {/* Logout Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+        onConfirm={confirmLogout}
+        title="Logout"
+        message="Are you sure you want to logout? You will need to login again to access your account."
+        confirmText="Logout"
+        cancelText="Cancel"
+        confirmButtonColor="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+        isDarkMode={isDarkMode}
+      />
     </div>
   );
 };

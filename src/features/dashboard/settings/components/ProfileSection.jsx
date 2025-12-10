@@ -1,15 +1,59 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { UserCircleIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-toastify";
+import { authAPI } from "../../../../api/auth";
+import { useAuth } from "../../../../auth/useAuth";
 
 const ProfileSection = ({ user, isDarkMode, onSave }) => {
+  const { updateProfile: updateUserProfile } = useAuth();
   const fileInputRef = useRef(null);
+  
+  // Initialize profile data from user object (API) first, then localStorage as fallback
+  const getInitialProfilePicture = () => {
+    // Priority: 1. User object from API, 2. localStorage (only if user object doesn't have it)
+    if (user?.profilePicture) {
+      return user.profilePicture;
+    }
+    // If user doesn't have profilePicture, clear localStorage to avoid showing stale data
+    const storedPicture = localStorage.getItem("profilePicture");
+    if (storedPicture && !user) {
+      // Only use localStorage if we don't have user data yet
+      return storedPicture;
+    }
+    // Clear localStorage if user exists but has no profile picture
+    if (user && !user.profilePicture) {
+      localStorage.removeItem("profilePicture");
+    }
+    return null;
+  };
+
   const [profileData, setProfileData] = useState({
-    name: user?.name || user?.username || "Rohit",
-    preferredHand: localStorage.getItem("preferredHand") || "right",
-    profilePicture: localStorage.getItem("profilePicture") || null,
+    name: user?.name || user?.username || "",
+    preferredHand: "right", // Only right hand is supported
+    profilePicture: getInitialProfilePicture(),
   });
   const [isSaving, setIsSaving] = useState(false);
+
+  // Update profileData when user prop changes
+  useEffect(() => {
+    if (user) {
+      setProfileData((prev) => ({
+        ...prev,
+        name: user.name || user.username || prev.name,
+        preferredHand: "right", // Always right hand
+        // Update profile picture from user object (API source of truth)
+        profilePicture: user.profilePicture || null,
+      }));
+      
+      // Sync localStorage with user object
+      if (user.profilePicture) {
+        localStorage.setItem("profilePicture", user.profilePicture);
+      } else {
+        // Clear localStorage if user doesn't have a profile picture
+        localStorage.removeItem("profilePicture");
+      }
+    }
+  }, [user]);
 
   const cardStyles = isDarkMode
     ? "border-slate-800 bg-slate-900/70 text-slate-100 shadow-[0_12px_30px_-25px_rgba(15,23,42,0.9)]"
@@ -39,29 +83,54 @@ const ProfileSection = ({ user, isDarkMode, onSave }) => {
     reader.readAsDataURL(file);
   };
 
-  const handleProfileUpdate = () => {
+  const handleProfileUpdate = async () => {
     setIsSaving(true);
-    localStorage.setItem("preferredHand", profileData.preferredHand);
-    if (profileData.profilePicture) {
-      localStorage.setItem("profilePicture", profileData.profilePicture);
-    }
-
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        userData.name = profileData.name;
-        localStorage.setItem("user", JSON.stringify(userData));
-      } catch (error) {
-        console.error("Error updating user data:", error);
+    
+    try {
+      // Prepare profile data for API - only right hand is supported
+      const updateData = {
+        name: profileData.name,
+        preferredHand: 'right', // Always right hand
+      };
+      
+      // Only include profilePicture if it's a URL (not base64)
+      // If it's base64, you might need to upload it first or handle it differently
+      if (profileData.profilePicture && profileData.profilePicture.startsWith('http')) {
+        updateData.profilePicture = profileData.profilePicture;
       }
-    }
 
-    setTimeout(() => {
+      // Call API to update profile
+      const response = await authAPI.updateProfile(updateData);
+      
+      if (response?.success && response.user) {
+        // Update auth context with new user data
+        await updateUserProfile(response.user);
+        
+        // Sync localStorage with updated user data from API
+        if (response.user.profilePicture) {
+          localStorage.setItem("profilePicture", response.user.profilePicture);
+        } else {
+          // Clear localStorage if profile picture was removed
+          localStorage.removeItem("profilePicture");
+        }
+        
+        // Update local state with new user data
+        setProfileData((prev) => ({
+          ...prev,
+          profilePicture: response.user.profilePicture || null,
+        }));
+        
+        toast.success(response.message || "Profile updated successfully");
+        if (onSave) onSave();
+      } else {
+        throw new Error(response?.message || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error(error.message || "Failed to update profile. Please try again.");
+    } finally {
       setIsSaving(false);
-      toast.success("Profile updated successfully");
-      if (onSave) onSave();
-    }, 500);
+    }
   };
 
   return (
@@ -149,7 +218,7 @@ const ProfileSection = ({ user, isDarkMode, onSave }) => {
           />
         </div>
 
-        {/* Preferred Hand */}
+        {/* Preferred Hand - Only Right Hand Supported */}
         <div>
           <label
             htmlFor="preferredHand"
@@ -158,23 +227,17 @@ const ProfileSection = ({ user, isDarkMode, onSave }) => {
             Preferred Hand
           </label>
           <div className="flex gap-3">
-            {["left", "right"].map((hand) => (
-              <button
-                key={hand}
-                type="button"
-                onClick={() => setProfileData((prev) => ({ ...prev, preferredHand: hand }))}
-                className={`flex-1 rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
-                  profileData.preferredHand === hand
-                    ? "border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                    : isDarkMode
-                    ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-blue-400 hover:text-blue-600"
-                }`}
-              >
-                {hand.charAt(0).toUpperCase() + hand.slice(1)} Hand
-              </button>
-            ))}
+            <div
+              className={`flex-1 rounded-2xl border px-4 py-3 text-sm font-semibold ${
+                "border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-600/30"
+              }`}
+            >
+              Right Hand
+            </div>
           </div>
+          <p className={`mt-2 text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+            Currently, only right-handed bowling analysis is supported.
+          </p>
         </div>
 
         <button

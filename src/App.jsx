@@ -35,27 +35,45 @@
 // export default App
 
 
+import { useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import {ToastContainer,Slide, Zoom, Bounce, Flip} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { router } from './routers/appRouter';
 import ReactQueryProvider from './provider/reactQueryProvider';
-import AuthContextProvider from './auth/AuthProvide';
+import AuthProvider from './auth/AuthProvider';
 
-const App = () => (
-  <ReactQueryProvider>
-      <AuthContextProvider>
+const App = () => {
+  // Prevent scroll restoration on page refresh
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
+    // Restore dark mode from localStorage on app load
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  return (
+    <ReactQueryProvider>
+      <AuthProvider>
         <ToastContainer 
-        position="top-right" 
-        autoClose={3000} 
-        hideProgressBar={false}
-        theme='dark'
-        transition={Flip}
+          position="top-right" 
+          autoClose={3000} 
+          hideProgressBar={false}
+          theme='dark'
+          transition={Flip}
         />
         <RouterProvider router={router} />
-      </AuthContextProvider>
-  </ReactQueryProvider>
-);
+      </AuthProvider>
+    </ReactQueryProvider>
+  );
+};
 
 export default App;

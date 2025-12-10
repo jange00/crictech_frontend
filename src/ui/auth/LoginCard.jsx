@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FaEnvelope, FaLock, FaGoogle, FaFacebookF, FaEye, FaEyeSlash } from "react-icons/fa";
 
-const LoginCard = ({ title, subtitle, formData, onChange, onSubmit, showPassword, onTogglePassword }) => (
+const LoginCard = ({ title, subtitle, formData, onChange, onSubmit, showPassword, onTogglePassword, onGoogleLogin, onFacebookLogin }) => (
   <motion.div
     initial={{ opacity: 0, y: 40, scale: 0.95 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -115,6 +115,7 @@ const LoginCard = ({ title, subtitle, formData, onChange, onSubmit, showPassword
           <div className="grid grid-cols-2 gap-4">
             <motion.button
               type="button"
+              onClick={onGoogleLogin}
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.97, y: 0 }}
               className="flex items-center justify-center gap-2.5 rounded-xl border-2 border-slate-200 bg-white py-3 text-sm font-semibold text-slate-700 transition-all hover:border-blue-400 hover:text-blue-600 hover:shadow-md"
@@ -124,6 +125,7 @@ const LoginCard = ({ title, subtitle, formData, onChange, onSubmit, showPassword
             </motion.button>
             <motion.button
               type="button"
+              onClick={onFacebookLogin}
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.97, y: 0 }}
               className="flex items-center justify-center gap-2.5 rounded-xl border-2 border-slate-200 bg-white py-3 text-sm font-semibold text-slate-700 transition-all hover:border-blue-400 hover:text-blue-600 hover:shadow-md"
