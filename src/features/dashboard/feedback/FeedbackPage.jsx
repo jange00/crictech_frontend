@@ -12,47 +12,72 @@ const FeedbackPage = ({ isDarkMode, analysisId = null }) => {
   const userVideoRef = useRef(null);
   const expertVideoRef = useRef(null);
 
-  // Fetch analysis feedback from API
+  // Fetch data
   const { useFeedback, useSingleAnalysis } = useAnalysis();
   const { data: feedbackData, isLoading: feedbackLoading } = useFeedback(analysisId);
   const { data: analysisData, isLoading: analysisLoading } = useSingleAnalysis(analysisId);
 
-  // Transform API data to component format
-  // Backend /api/analysis/:id/feedback returns: { success: true, feedback: { items, jointAngles, metrics, expertComparison } }
-  // Backend /api/analysis/:id returns: { success: true, analysis: Analysis }
+  // DEBUGGING: Check what the API is actually returning
+  useEffect(() => {
+    if (analysisData) console.log("📊 API Analysis Data:", analysisData);
+    if (feedbackData) console.log("📊 API Feedback Data:", feedbackData);
+  }, [analysisData, feedbackData]);
+
   const data = useMemo(() => {
-    if (!feedbackData && !analysisData) {
+    // 1. Determine the best source of truth
+    // analysisData = The full document from DB (includes everything)
+    // feedbackData = The result of /api/analysis/:id/feedback endpoint
+    const source = analysisData || feedbackData;
+
+    if (!source) {
+      console.warn("⚠️ No data source found, using Defaults");
       return DEFAULT_FEEDBACK_DATA;
     }
 
-    // feedbackData structure: { items, jointAngles, metrics, expertComparison }
-    // analysisData structure: Analysis object with sessionId populated
-    if (feedbackData) {
-      return {
-        userVideoUrl: analysisData?.sessionId?.videoUrl || "",
-        expertVideoUrl: feedbackData.expertComparison?.expertVideoUrl || "",
-        jointAngles: feedbackData.jointAngles || [],
-        feedbackItems: feedbackData.items || [],
-        metrics: feedbackData.metrics || {},
-        expertComparison: feedbackData.expertComparison || {},
-      };
-    }
+    // 2. Extract specific fields safely (Handle different API response structures)
     
-    // Fallback to analysis data
-    if (analysisData) {
-      return {
-        userVideoUrl: analysisData.sessionId?.videoUrl || "",
-        expertVideoUrl: analysisData.expertComparison?.expertVideoUrl || "",
-        jointAngles: analysisData.jointAngles || [],
-        feedbackItems: analysisData.feedbackItems || [],
-        metrics: analysisData.metrics || {},
-        expertComparison: analysisData.expertComparison || {},
-      };
+    // Joint Angles
+    const jointAngles = source.jointAngles || source.feedback?.jointAngles || [];
+
+    // Feedback Items (Handle 'feedbackItems' vs 'items' mismatch)
+    const feedbackItems = 
+      source.feedbackItems || 
+      source.feedback?.items || 
+      source.items || 
+      [];
+
+    // Metrics
+    const metrics = source.metrics || source.feedback?.metrics || {};
+
+    // Expert Comparison
+    const expertComparison = 
+      source.expertComparison || 
+      source.feedback?.expertComparison || 
+      {};
+
+    // Video URL (Usually in analysisData.sessionId.videoUrl)
+    const userVideoUrl = 
+      source.sessionId?.videoUrl || 
+      source.videoUrl || 
+      "";
+
+    // 3. Validation: If data is empty, fallback to default to prevent white screen
+    if (jointAngles.length === 0 && feedbackItems.length === 0) {
+      console.warn("⚠️ Data source exists but arrays are empty. Analysis might be incomplete.");
+      // You might want to return DEFAULT_FEEDBACK_DATA here, or keep empty to show "No Data" state
     }
-    
-    return DEFAULT_FEEDBACK_DATA;
+
+    return {
+      userVideoUrl,
+      expertVideoUrl: expertComparison.expertVideoUrl || "", // Add a default expert video URL here if needed
+      jointAngles,
+      feedbackItems,
+      metrics,
+      expertComparison,
+    };
   }, [feedbackData, analysisData]);
 
+  // Generate overlays based on the computed data
   const poseOverlayData = useMemo(() => generatePoseOverlayData(data.jointAngles, false), [data.jointAngles]);
   const expertPoseOverlayData = useMemo(() => generatePoseOverlayData(data.jointAngles, true), [data.jointAngles]);
 
@@ -78,6 +103,7 @@ const FeedbackPage = ({ isDarkMode, analysisId = null }) => {
     }
   };
 
+  // Synchronize Videos
   useEffect(() => {
     const userVideo = userVideoRef.current;
     const expertVideo = expertVideoRef.current;
@@ -85,6 +111,7 @@ const FeedbackPage = ({ isDarkMode, analysisId = null }) => {
     const handleTimeUpdate = () => {
       if (userVideo && expertVideo) {
         const currentTime = userVideo.currentTime;
+        // Sync expert video if it drifts more than 0.1s
         if (Math.abs(expertVideo.currentTime - currentTime) > 0.1) {
           expertVideo.currentTime = currentTime;
         }
@@ -93,16 +120,12 @@ const FeedbackPage = ({ isDarkMode, analysisId = null }) => {
 
     const handlePlay = () => {
       setIsPlaying(true);
-      if (expertVideo) {
-        expertVideo.play().catch(() => {});
-      }
+      if (expertVideo) expertVideo.play().catch(() => {});
     };
 
     const handlePause = () => {
       setIsPlaying(false);
-      if (expertVideo) {
-        expertVideo.pause();
-      }
+      if (expertVideo) expertVideo.pause();
     };
 
     if (userVideo) {
@@ -118,23 +141,13 @@ const FeedbackPage = ({ isDarkMode, analysisId = null }) => {
         userVideo.removeEventListener("pause", handlePause);
       }
     };
-  }, []);
+  }, []); // Run once on mount
 
   const cardStyles = isDarkMode
     ? "border-slate-800 bg-slate-900/70 text-slate-100 shadow-[0_12px_30px_-25px_rgba(15,23,42,0.9)]"
     : "border-slate-200 bg-white text-slate-900 shadow-[0_15px_35px_-25px_rgba(15,23,42,0.25)]";
 
-  if (!analysisId) {
-    return (
-      <div className={`rounded-3xl border p-6 ${cardStyles}`}>
-        <h2 className="text-2xl font-semibold mb-2">AI Feedback Analysis</h2>
-        <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
-          No analysis selected. Please complete an analysis first to view feedback.
-        </p>
-      </div>
-    );
-  }
-
+  // Loading State
   if (feedbackLoading || analysisLoading) {
     return (
       <div className={`rounded-3xl border p-6 ${cardStyles}`}>
@@ -142,6 +155,18 @@ const FeedbackPage = ({ isDarkMode, analysisId = null }) => {
           <span className="h-5 w-5 animate-spin rounded-full border-2 border-t-transparent border-blue-600" />
           <span>Loading feedback data...</span>
         </div>
+      </div>
+    );
+  }
+
+  // No Analysis Selected State
+  if (!analysisId) {
+    return (
+      <div className={`rounded-3xl border p-6 ${cardStyles}`}>
+        <h2 className="text-2xl font-semibold mb-2">AI Feedback Analysis</h2>
+        <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+          No analysis selected. Please complete an analysis first to view feedback.
+        </p>
       </div>
     );
   }
@@ -154,7 +179,7 @@ const FeedbackPage = ({ isDarkMode, analysisId = null }) => {
           <div>
             <h2 className="text-2xl font-semibold">AI Feedback Analysis</h2>
             <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
-              Compare your action with the expert model and review AI-generated suggestions for improvement.
+              Compare your action with the expert model and review AI-generated suggestions.
             </p>
           </div>
           <button
@@ -185,36 +210,20 @@ const FeedbackPage = ({ isDarkMode, analysisId = null }) => {
       {/* Textual Feedback Section */}
       <FeedbackCards feedbackItems={data.feedbackItems} isDarkMode={isDarkMode} />
 
-      {/* Action Buttons */}
+      {/* Report Generation Button */}
       <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={handleRewatch}
-          className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-blue-600/30 transition hover:bg-blue-700"
-        >
-          <ArrowPathIcon className="h-5 w-5" />
-          Rewatch Feedback
-        </button>
         <button
           type="button"
           onClick={() => {
             try {
-              const reportData = {
-                feedbackAnalysis: {
-                  date: new Date().toISOString(),
-                  jointAngles: data.jointAngles,
-                  feedbackItems: data.feedbackItems,
-                },
-                summary: {
-                  totalFeedbackItems: data.feedbackItems.length,
-                  positiveItems: data.feedbackItems.filter((item) => item.type === "positive").length,
-                  improvementItems: data.feedbackItems.filter((item) => item.type === "warning").length,
-                },
-              };
-
               const reportContent = `
 CricTech AI Feedback Report
 Generated: ${new Date().toLocaleString()}
+
+=== METRICS ===
+Speed: ${data.metrics?.bowlingSpeed || 0} km/h
+Accuracy: ${data.metrics?.accuracy || 0}%
+Spin Rate: ${data.metrics?.spinRate || 0} rpm
 
 === JOINT ANGLE ANALYSIS ===
 ${data.jointAngles
@@ -223,41 +232,36 @@ ${data.jointAngles
 ${joint.joint}:
   Your Angle: ${joint.userAngle}°
   Expert Angle: ${joint.expertAngle}°
-  Status: ${joint.status === "warning" ? "Needs Improvement" : "Optimal"}
+  Status: ${joint.status === "warning" ? "Needs Improvement" : joint.status === "critical" ? "Critical" : "Optimal"}
 `
   )
   .join("")}
 
-=== AI-GENERATED FEEDBACK ===
+=== AI FEEDBACK ===
 ${data.feedbackItems
   .map(
     (item, idx) => `
-${idx + 1}. ${item.title}
+${idx + 1}. ${item.title} (${item.type.toUpperCase()})
    ${item.message}
-   💡 Suggestion: ${item.suggestion || "N/A"}
+   Suggestion: ${item.suggestion || "N/A"}
 `
   )
   .join("")}
-
-=== SUMMARY ===
-Total Feedback Items: ${reportData.summary.totalFeedbackItems}
-Positive Aspects: ${reportData.summary.positiveItems}
-Areas for Improvement: ${reportData.summary.improvementItems}
               `.trim();
 
               const blob = new Blob([reportContent], { type: "text/plain" });
               const url = URL.createObjectURL(blob);
               const a = document.createElement("a");
               a.href = url;
-              a.download = `crictech-feedback-report-${new Date().toISOString().split("T")[0]}.txt`;
+              a.download = `crictech-analysis-${new Date().toISOString().split("T")[0]}.txt`;
               document.body.appendChild(a);
               a.click();
               document.body.removeChild(a);
               URL.revokeObjectURL(url);
-              toast.success("Feedback report downloaded successfully");
+              toast.success("Feedback report downloaded");
             } catch (error) {
               console.error("Error generating report:", error);
-              toast.error("Failed to generate report. Please try again.");
+              toast.error("Failed to generate report");
             }
           }}
           className={`inline-flex items-center gap-2 rounded-2xl border px-5 py-3 text-sm font-semibold transition ${
@@ -274,4 +278,3 @@ Areas for Improvement: ${reportData.summary.improvementItems}
 };
 
 export default FeedbackPage;
-

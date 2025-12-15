@@ -8,8 +8,9 @@ import { useAuth } from '../auth/useAuth';
  * @param {Function} options.onUploadProgress - Handler for upload-progress events
  * @param {Function} options.onAnalysisProgress - Handler for analysis-progress events
  * @param {Function} options.onAnalysisComplete - Handler for analysis-complete events
+ * @param {Function} options.onAnalysisError - Handler for analysis-error events (specific to analysis)
  * @param {Function} options.onNotification - Handler for notification events
- * @param {Function} options.onError - Handler for error events
+ * @param {Function} options.onError - Handler for generic error events
  * @returns {Object} Socket connection status and methods
  */
 export const useSocket = (options = {}) => {
@@ -49,6 +50,11 @@ export const useSocket = (options = {}) => {
     if (options.onAnalysisComplete) {
       const unsubscribe = socketService.on('analysis-complete', options.onAnalysisComplete);
       unsubscribers.push(() => socketService.off('analysis-complete', options.onAnalysisComplete));
+    }
+
+    if (options.onAnalysisError) {
+      const unsubscribe = socketService.on('analysis-error', options.onAnalysisError);
+      unsubscribers.push(() => socketService.off('analysis-error', options.onAnalysisError));
     }
 
     if (options.onNotification) {

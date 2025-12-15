@@ -37,6 +37,7 @@ const ProgressTrackerPage = ({ isDarkMode }) => {
       sessionType: session.sessionType,
       bowlingType: session.bowlingType,
     }));
+    
 
     // Transform chart data
     const transformChartData = (chartData) => {

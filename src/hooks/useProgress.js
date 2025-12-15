@@ -23,6 +23,7 @@ export const useProgress = () => {
       staleTime: 2 * 60 * 1000, // 2 minutes
       gcTime: 5 * 60 * 1000, // 5 minutes cache
       select: (response) => {
+        console.log(response)
         if (response?.success) {
           return {
             sessions: response.sessions || [],

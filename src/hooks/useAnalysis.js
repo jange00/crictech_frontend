@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { analysisAPI } from '../api/analysis';
 import { toast } from 'react-toastify';
+import { parseAnalysisError, getErrorIcon } from '../utils/errorHandler';
 
 /**
  * Hook for managing analysis
@@ -71,7 +72,27 @@ export const useAnalysis = (options = {}) => {
       }
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to start analysis');
+      const errorInfo = parseAnalysisError(error);
+      
+      // Show appropriate toast based on error severity
+      if (errorInfo.severity === 'warning') {
+        toast.warning(`${getErrorIcon(errorInfo.type)} ${errorInfo.message}`, {
+          autoClose: 6000,
+        });
+      } else {
+        toast.error(`${getErrorIcon(errorInfo.type)} ${errorInfo.message}`, {
+          autoClose: 6000,
+        });
+      }
+      
+      // Show suggestion if available
+      if (errorInfo.suggestion) {
+        setTimeout(() => {
+          toast.info(`💡 ${errorInfo.suggestion}`, {
+            autoClose: 8000,
+          });
+        }, 1000);
+      }
     },
   });
 

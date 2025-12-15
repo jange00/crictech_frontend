@@ -133,3 +133,4 @@ export const Skeleton = ({ width = "100%", height = "1rem", className = "", isDa
 );
 
 export default SkeletonBase;
+

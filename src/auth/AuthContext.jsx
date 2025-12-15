@@ -5,3 +5,4 @@ import { createContext } from 'react';
  * Provides authentication state and methods throughout the app
  */
 export const AuthContext = createContext(null);
+
