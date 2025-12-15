@@ -106,17 +106,22 @@ const DashboardContent = () => {
   const { videos, isLoading: videosLoading } = useVideos({ page: 1, limit: 1 });
   
   // Fetch notifications - with longer stale time
-  const { unreadCount } = useNotifications({ page: 1, limit: 1 });
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications({ page: 1, limit: 10 });
 
   // Transform API metrics data to dashboard format
   const dashboardMetrics = useMemo(() => {
     if (!metricsData?.metrics) return DASHBOARD_METRICS;
     
     const metrics = metricsData.metrics;
-    const speedData = metrics.bowlingSpeed || [];
-    const spinData = metrics.spinConsistency || [];
-    const wristData = metrics.wristAlignment || [];
-    const accuracyData = metrics.accuracyIndex || [];
+
+    // Support multiple possible keys from the backend for robustness
+    const speedData = metrics.bowlingSpeed || metrics.speed || [];
+    const spinData =
+      metrics.spinConsistency || // preferred name
+      metrics.spinRate ||        // alternate name
+      [];
+    const wristData = metrics.wristAlignment || metrics.wrist || [];
+    const accuracyData = metrics.accuracyIndex || metrics.accuracy || [];
 
     // Calculate averages and changes
     const getLatestValue = (data) => data.length > 0 ? data[data.length - 1]?.value : null;
@@ -351,6 +356,8 @@ const DashboardContent = () => {
         <DashboardTopNav
           userName={userName}
           isDarkMode={isDarkMode}
+          unreadNotifications={unreadCount}
+          notifications={notifications}
           onToggleTheme={() => {
             setIsDarkMode((prev) => {
               const newValue = !prev;
@@ -358,6 +365,8 @@ const DashboardContent = () => {
               return newValue;
             });
           }}
+          onMarkAsRead={markAsRead}
+          onMarkAllAsRead={markAllAsRead}
         />
 
         <div className="grid flex-1 gap-6 lg:grid-cols-[260px_1fr] xl:grid-cols-[280px_1fr]">

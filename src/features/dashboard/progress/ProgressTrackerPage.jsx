@@ -18,7 +18,7 @@ const ProgressTrackerPage = ({ isDarkMode }) => {
   const { data: metricsData, isLoading: metricsLoading } = useMetrics(selectedPeriod);
   const { data: insightsData, isLoading: insightsLoading } = useInsights(selectedPeriod);
   
-  // Fetch chart data for each metric - these are cached, so multiple calls won't cause extra requests
+  // Fetch chart data for each metric - these are cached on the backend, so multiple calls won't cause extra requests
   const { data: speedChartData } = useCharts('bowlingSpeed', selectedPeriod);
   const { data: wristChartData } = useCharts('wristAlignment', selectedPeriod);
   const { data: spinChartData } = useCharts('spinConsistency', selectedPeriod);
@@ -27,43 +27,46 @@ const ProgressTrackerPage = ({ isDarkMode }) => {
   // Transform API data to component format
   const data = useMemo(() => {
     // Transform sessions to sessionHistory format
-    const sessionHistory = (sessionsData?.sessions || []).map(session => ({
-      id: session._id,
-      date: new Date(session.date).toLocaleDateString(),
-      accuracy: session.accuracy || "N/A",
-      spinRate: session.spinRate || "N/A",
-      bowlingSpeed: session.bowlingSpeed || "N/A",
-      feedbackSummary: session.feedbackSummary || "",
-      sessionType: session.sessionType,
-      bowlingType: session.bowlingType,
-    }));
-    
+    const rawSessions = sessionsData?.sessions || [];
+    const sessionHistory =
+      rawSessions.length > 0
+        ? rawSessions.map((session) => {
+            const dateValue = session.date || session.createdAt || session.startedAt;
+            return {
+              id: session._id || session.id,
+              date: dateValue ? new Date(dateValue).toLocaleDateString() : "N/A",
+              accuracy: session.accuracy ?? session.metrics?.accuracy ?? "N/A",
+              spinRate: session.spinRate ?? session.metrics?.spinRate ?? "N/A",
+              bowlingSpeed: session.bowlingSpeed ?? session.metrics?.bowlingSpeed ?? "N/A",
+              feedbackSummary: session.feedbackSummary || "",
+              sessionType: session.sessionType || session.type || "Practice",
+              bowlingType: session.bowlingType || session.style || "Unknown",
+            };
+          })
+        : DEFAULT_PROGRESS_DATA.sessionHistory;
 
     // Transform chart data
-    const transformChartData = (chartData) => {
-      if (!chartData?.chartData || chartData.chartData.length === 0) return [];
-      return chartData.chartData.map(item => ({
-        date: new Date(item.date).toLocaleDateString(),
-        value: item.value,
+    const transformChartData = (chartData, fallback) => {
+      if (!chartData?.chartData || chartData.chartData.length === 0) {
+        return fallback;
+      }
+      return chartData.chartData.map((item, index) => ({
+        date: item.date
+          ? new Date(item.date).toLocaleDateString()
+          : fallback?.[index]?.date || `Session ${index + 1}`,
+        value: item.value ?? fallback?.[index]?.value ?? 0,
       }));
     };
 
     // Transform insights
-    const aiInsights = insightsData?.insights || {
-      improvement: "0%",
-      metric: "performance",
-      trend: "stable",
-      keyStrengths: [],
-      areasForImprovement: [],
-      recommendations: [],
-    };
+    const aiInsights = insightsData?.insights || DEFAULT_PROGRESS_DATA.aiInsights;
 
     return {
       sessionHistory,
-      bowlingSpeed: transformChartData(speedChartData),
-      wristAlignment: transformChartData(wristChartData),
-      spinConsistency: transformChartData(spinChartData),
-      accuracyIndex: transformChartData(accuracyChartData),
+      bowlingSpeed: transformChartData(speedChartData, DEFAULT_PROGRESS_DATA.bowlingSpeed),
+      wristAlignment: transformChartData(wristChartData, DEFAULT_PROGRESS_DATA.wristAlignment),
+      spinConsistency: transformChartData(spinChartData, DEFAULT_PROGRESS_DATA.spinConsistency),
+      accuracyIndex: transformChartData(accuracyChartData, DEFAULT_PROGRESS_DATA.accuracyIndex),
       aiInsights,
     };
   }, [sessionsData, speedChartData, wristChartData, spinChartData, accuracyChartData, insightsData]);
