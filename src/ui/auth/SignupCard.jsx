@@ -67,6 +67,27 @@ const SignupCard = ({ title, subtitle, formData, onChange, onSubmit, showPasswor
 
         <div className="space-y-3">
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+            Username
+          </label>
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 text-sm">
+              <FaUser />
+            </span>
+            <input
+              name="username"
+              type="text"
+              required
+              autoComplete="username"
+              placeholder="e.g. legspinner_07"
+              value={formData.username}
+              onChange={onChange}
+              className="w-full rounded-xl border-2 border-slate-200 bg-white px-11 py-3.5 text-sm text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/20 hover:border-slate-300"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
             Email Address
           </label>
           <div className="relative">

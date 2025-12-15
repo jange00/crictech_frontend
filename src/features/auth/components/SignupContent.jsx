@@ -6,7 +6,13 @@ import { toast } from "react-toastify";
 import SignupCard from "../../../ui/auth/SignupCard";
 
 const SignupContent = () => {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
@@ -34,7 +40,8 @@ const SignupContent = () => {
     
     try {
       const result = await register({
-        name: formData.name,
+        name: formData.name?.trim(),
+        username: formData.username?.trim() || undefined,
         email: formData.email,
         password: formData.password,
       });

@@ -3,6 +3,7 @@ import { AuthContext } from './AuthContext';
 import { authAPI } from '../api/auth';
 import { storageService } from '../services/storageService';
 import { socketService } from '../services/socketService';
+import { queryClient } from '../provider/reactQueryProvider';
 import { toast } from 'react-toastify';
 
 const AuthProvider = ({ children }) => {
@@ -48,6 +49,9 @@ const AuthProvider = ({ children }) => {
         
         // Email verification not required or already verified
         if (response.user && response.token) {
+          // Clear React Query cache to ensure fresh data for new user
+          queryClient.clear();
+          
           const normalizedUser = normalizeUser(response.user);
           storageService.setUser(normalizedUser);
           storageService.setToken(response.token);
@@ -82,6 +86,9 @@ const AuthProvider = ({ children }) => {
       const response = await authAPI.login(credentials);
       
       if (response?.success && response.user && response.token) {
+        // Clear React Query cache to ensure fresh data for new user
+        queryClient.clear();
+        
         const normalizedUser = normalizeUser(response.user);
         storageService.setUser(normalizedUser);
         storageService.setToken(response.token);
@@ -149,6 +156,9 @@ const AuthProvider = ({ children }) => {
       console.error('Logout API error:', error);
       // Continue with logout even if API call fails
     } finally {
+      // Clear React Query cache - remove all cached data
+      queryClient.clear();
+      
       // Clear local storage
       storageService.clearAuth();
       
@@ -186,8 +196,16 @@ const AuthProvider = ({ children }) => {
       const response = await authAPI.getCurrentUser();
       
       if (response?.success && response.user) {
-        // Update user data (in case it changed on server)
         const normalizedUser = normalizeUser(response.user);
+        const currentUserId = storedUser?._id || storedUser?.id;
+        const newUserId = normalizedUser._id || normalizedUser.id;
+        
+        // If user ID changed (different user logged in), clear cache
+        if (currentUserId && newUserId && currentUserId !== newUserId) {
+          queryClient.clear();
+        }
+        
+        // Update user data (in case it changed on server)
         storageService.setUser(normalizedUser);
         setUser(normalizedUser);
         setToken(storedToken);
@@ -213,6 +231,7 @@ const AuthProvider = ({ children }) => {
       if (isNetworkError) {
         // Server is offline - clear auth immediately
         console.warn('Server is offline. Clearing authentication.');
+        queryClient.clear();
         storageService.clearAuth();
         socketService.disconnect();
         setUser(null);
@@ -225,6 +244,7 @@ const AuthProvider = ({ children }) => {
         }
       } else if (error.response?.status === 401 || error.response?.status === 403) {
         // Token is invalid - clear auth
+        queryClient.clear();
         storageService.clearAuth();
         socketService.disconnect();
         setUser(null);
@@ -232,6 +252,7 @@ const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
       } else {
         // Other errors - still clear auth to be safe
+        queryClient.clear();
         storageService.clearAuth();
         socketService.disconnect();
         setUser(null);
