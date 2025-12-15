@@ -35,31 +35,48 @@ const FeedbackPage = ({ isDarkMode, analysisId = null }) => {
     }
 
     // 2. Extract specific fields safely (Handle different API response structures)
-    
+
     // Joint Angles
-    const jointAngles = source.jointAngles || source.feedback?.jointAngles || [];
+    const rawJointAngles = source.jointAngles || source.feedback?.jointAngles || [];
 
     // Feedback Items (Handle 'feedbackItems' vs 'items' mismatch)
-    const feedbackItems = 
-      source.feedbackItems || 
-      source.feedback?.items || 
-      source.items || 
+    const rawFeedbackItems =
+      source.feedbackItems ||
+      source.feedback?.items ||
+      source.items ||
       [];
 
     // Metrics
     const metrics = source.metrics || source.feedback?.metrics || {};
 
     // Expert Comparison
-    const expertComparison = 
-      source.expertComparison || 
-      source.feedback?.expertComparison || 
+    const expertComparison =
+      source.expertComparison ||
+      source.feedback?.expertComparison ||
       {};
 
     // Video URL (Usually in analysisData.sessionId.videoUrl)
-    const userVideoUrl = 
-      source.sessionId?.videoUrl || 
-      source.videoUrl || 
+    const userVideoUrl =
+      source.sessionId?.videoUrl ||
+      source.videoUrl ||
       "";
+
+    // Normalise joint angles & feedback items so the UI can always render them
+    const jointAngles =
+      rawJointAngles && rawJointAngles.length > 0
+        ? rawJointAngles.map((joint, idx) => ({
+            id: joint.id || joint._id || `joint-${idx}`,
+            ...joint,
+          }))
+        : DEFAULT_FEEDBACK_DATA.jointAngles;
+
+    const feedbackItems =
+      rawFeedbackItems && rawFeedbackItems.length > 0
+        ? rawFeedbackItems.map((item, idx) => ({
+            id: item.id || item._id || `feedback-${idx}`,
+            ...item,
+          }))
+        : DEFAULT_FEEDBACK_DATA.feedbackItems;
 
     // 3. Validation: If data is empty, fallback to default to prevent white screen
     if (jointAngles.length === 0 && feedbackItems.length === 0) {
@@ -82,25 +99,39 @@ const FeedbackPage = ({ isDarkMode, analysisId = null }) => {
   const expertPoseOverlayData = useMemo(() => generatePoseOverlayData(data.jointAngles, true), [data.jointAngles]);
 
   const handlePlayPause = () => {
-    if (userVideoRef.current && expertVideoRef.current) {
-      if (isPlaying) {
-        userVideoRef.current.pause();
-        expertVideoRef.current.pause();
-      } else {
-        userVideoRef.current.play();
-        expertVideoRef.current.play();
+    const userVideo = userVideoRef.current;
+    const expertVideo = expertVideoRef.current;
+
+    if (!userVideo && !expertVideo) return;
+
+    if (isPlaying) {
+      if (userVideo) userVideo.pause();
+      if (expertVideo) expertVideo.pause();
+    } else {
+      if (userVideo) userVideo.play();
+      if (expertVideo) {
+        // Do not block if expert video fails to play (e.g. no URL)
+        expertVideo.play().catch(() => {});
       }
     }
   };
 
   const handleRewatch = () => {
-    if (userVideoRef.current && expertVideoRef.current) {
-      userVideoRef.current.currentTime = 0;
-      expertVideoRef.current.currentTime = 0;
-      userVideoRef.current.play();
-      expertVideoRef.current.play();
-      setIsPlaying(true);
+    const userVideo = userVideoRef.current;
+    const expertVideo = expertVideoRef.current;
+
+    if (!userVideo && !expertVideo) return;
+
+    if (userVideo) {
+      userVideo.currentTime = 0;
+      userVideo.play().catch(() => {});
     }
+    if (expertVideo) {
+      expertVideo.currentTime = 0;
+      expertVideo.play().catch(() => {});
+    }
+
+    setIsPlaying(true);
   };
 
   // Synchronize Videos
