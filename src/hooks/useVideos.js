@@ -1,7 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { videosAPI } from '../api/videos';
-import { toast } from 'react-toastify';
-import { parseAnalysisError, getErrorIcon } from '../utils/errorHandler';
 
 /**
  * Hook for managing videos
@@ -56,33 +54,14 @@ export const useVideos = (options = {}) => {
     },
     onSuccess: (data) => {
       if (data?.success) {
-        toast.success('Video uploaded successfully');
         // Invalidate videos list to refetch
         queryClient.invalidateQueries({ queryKey: ['videos'] });
       }
     },
     onError: (error) => {
-      const errorInfo = parseAnalysisError(error);
-      
-      // Show appropriate toast based on error severity
-      if (errorInfo.severity === 'warning') {
-        toast.warning(`${getErrorIcon(errorInfo.type)} ${errorInfo.message}`, {
-          autoClose: 6000,
-        });
-      } else {
-        toast.error(`${getErrorIcon(errorInfo.type)} ${errorInfo.message}`, {
-          autoClose: 6000,
-        });
-      }
-      
-      // Show suggestion if available
-      if (errorInfo.suggestion) {
-        setTimeout(() => {
-          toast.info(`💡 ${errorInfo.suggestion}`, {
-            autoClose: 8000,
-          });
-        }, 1000);
-      }
+      // Let the global axios interceptor handle error toasts.
+      // We only log here to avoid duplicate notifications.
+      console.error('Video upload error:', error);
     },
   });
 
@@ -91,13 +70,12 @@ export const useVideos = (options = {}) => {
     mutationFn: (videoId) => videosAPI.deleteVideo(videoId),
     onSuccess: (data) => {
       if (data?.success) {
-        toast.success('Video deleted successfully');
         // Invalidate videos list
         queryClient.invalidateQueries({ queryKey: ['videos'] });
       }
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to delete video');
+      console.error('Video delete error:', error);
     },
   });
 

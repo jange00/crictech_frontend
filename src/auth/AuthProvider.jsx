@@ -69,8 +69,8 @@ const AuthProvider = ({ children }) => {
       
       throw new Error(response?.message || 'Registration failed');
     } catch (error) {
+      // Let the global axios interceptor handle error toasts to avoid duplicates.
       const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
-      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -116,8 +116,8 @@ const AuthProvider = ({ children }) => {
         };
       }
       
+      // Let the global axios interceptor handle error toasts to avoid duplicates.
       const errorMessage = error.response?.data?.message || error.message || 'Login failed';
-      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
